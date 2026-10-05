@@ -170,6 +170,9 @@ class RecordVideo(
 ):
     """Records videos of environment episodes using the environment's render function.
 
+    Recorded frames are snapshots, so reusing a render buffer or modifying frames
+    returned by :meth:`render` does not change an earlier captured frame.
+
     .. py:currentmodule:: gymnasium.utils.save_video
 
     Usually, you only want to record episodes intermittently, say every hundredth episode or at every thousandth environment step.
@@ -335,7 +338,7 @@ class RecordVideo(
             frame = frame[-1]
 
         if isinstance(frame, np.ndarray):
-            self.recorded_frames.append(frame)
+            self.recorded_frames.append(frame.copy())
         else:
             self.stop_recording()
             logger.warn(
@@ -382,7 +385,7 @@ class RecordVideo(
         """Compute the render frames as specified by render_mode attribute during initialization of the environment."""
         render_out = super().render()
         if self.recording and isinstance(render_out, list):
-            self.recorded_frames += render_out
+            self.recorded_frames += deepcopy(render_out)
 
         if len(self.render_history) > 0:
             tmp_history = self.render_history
